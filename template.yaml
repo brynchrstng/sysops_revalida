@@ -236,6 +236,31 @@ Resources:
               - "bookingLocation"
               - "targetLocation"
               - "state"
+      WriteCapacityScalableTarget:
+        Type: AWS::ApplicationAutoScaling::ScalableTarget
+        Properties:
+          MaxCapacity: 100
+          MinCapacity: 5
+          RoleARN: 
+            Fn::Sub: 'arn:aws:iam::${AWS::AccountId}:role/aws-service-role/dynamodb.application-autoscaling.amazonaws.com/AWSServiceRoleForApplicationAutoScaling_DynamoDBTable'
+          ServiceNamespace: dynamodb
+          ScalableDimension: dynamodb:table:WriteCapacityUnits
+          ResourceId: !Join
+            - /
+            - - table
+              - !Ref frab_revalida
+      WriteScalingPolicy:
+        Type: AWS::ApplicationAutoScaling::ScalingPolicy
+        Properties:
+          PolicyName: WriteAutoScalingPolicy
+          PolicyType: TargetTrackingScaling
+          ScalingTargetId: !Ref WriteCapacityScalableTarget
+          TargetTrackingScalingPolicyConfiguration:
+            TargetValue: 50.0
+            ScaleInCooldown: 100
+            ScaleOutCooldown: 30
+            PredefinedMetricSpecification:
+              PredefinedMetricType: DynamoDBWriteCapacityUtilization          
 
 Outputs:
   FrabRevalidaApi:
